@@ -1,0 +1,49 @@
+version: "3.1"
+services:
+  webserver:
+    image: nginx:stable-alpine
+    container_name: nginx-api-rest
+    ports:
+      - "1100:80"
+    volumes:
+      - ./api-rest:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+      - mysql
+    networks:
+      - net-api-rest
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql-api-rest
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "33069:3306"
+    volumes:
+      - ./database/data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: 'api_rest'
+      MYSQL_USER: 'api_user'
+      MYSQL_PASSWORD: 'secret'
+      MYSQL_ROOT_PASSWORD: 'secret.root'
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    networks:
+      - net-api-rest
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app-api-rest
+    volumes:
+      - ./api-rest:/var/www/html
+    networks:
+      - net-api-rest
+
+networks:
+  net-api-rest:
+
+
